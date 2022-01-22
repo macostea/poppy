@@ -1,8 +1,9 @@
 use core::time;
 use std::thread;
 
-use rhai::{EvalAltResult, Engine, ImmutableString, Dynamic, NativeCallContext, FnPtr, Scope};
+use rhai::{EvalAltResult, Engine, ImmutableString, Dynamic, NativeCallContext, FnPtr, Scope, exported_module, packages::{CorePackage, Package}};
 
+mod poppy;
 
 fn add_len(x: i64, s: ImmutableString) -> i64 {
     x + s.len() as i64
@@ -52,7 +53,13 @@ impl TestStruct {
 }
 
 fn main() -> Result<(), Box<EvalAltResult>> {
-    let mut engine = Engine::new();
+    let module = exported_module!(poppy::poppy);
+    let mut engine = Engine::new_raw();
+    let package = CorePackage::new();
+    engine.register_global_module(package.as_shared_module());
+
+    engine.disable_symbol("eval");
+
     engine
         .register_fn("add", add_len)
         .register_fn("add_str", add_len_str)
@@ -65,6 +72,11 @@ fn main() -> Result<(), Box<EvalAltResult>> {
         .register_type::<TestStruct>()
         .register_fn("new_ts", TestStruct::new)
         .register_fn("update_ts", TestStruct::update);
+
+    engine
+        .register_global_module(module.into());
+
+    let engine = engine;
     
     let result = engine.eval::<i64>(r#"add(40, "xx")"#)?;
     println!("Answer: {}", result);
@@ -104,6 +116,9 @@ fn main() -> Result<(), Box<EvalAltResult>> {
     )?;
 
     println!("result: {:?}", result);
+
+    let res = engine.eval::<i64>("get_num()")?;
+    println!("Module get_num() result: {}", res);
 
     Ok(())
 }
