@@ -27,9 +27,10 @@ impl PoppyEngine {
 
     pub fn run_script(&mut self) -> Result<(), String> {
         if let Some(ast) = self.script_ast.take() {
-            Ok(self.rhai_engine.run_ast(&ast).map_err(|e| {
-                e.to_string()
-            })?)
+            match self.rhai_engine.run_ast(&ast) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e.to_string())
+            }
         } else {
             Err("No script loaded".to_string())
         }
@@ -63,6 +64,16 @@ impl PoppyEngine {
         let c = commands.clone();
         engine.register_fn("current_context", move || {
             c.borrow().current_run_context.clone()
+        });
+
+        let c = commands.clone();
+        engine.register_result_fn("sh", move |script: &str| -> Result<String, Box<EvalAltResult>> {
+            c.borrow().sh(script).map_err(|e| e.into())
+        });
+
+        let c = commands.clone();
+        engine.register_result_fn("sh_file", move |script_file: &str| -> Result<String, Box<EvalAltResult>> {
+            c.borrow().sh_file(script_file.into()).map_err(|e| e.into())
         });
 
         engine
