@@ -1,9 +1,12 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, fmt::Debug};
 use std::cell::RefCell;
 use rhai::{Engine, packages::{CorePackage, Package}, AST, NativeCallContext, FnPtr, EvalAltResult};
 
 use crate::command::{PoppyCommands, SharedPoppyCommands, CurrentRunContext};
 
+pub trait Node: Sized + Debug + Clone {
+    fn name(&self) -> String;
+}
 pub struct PoppyEngine {
     rhai_engine: Engine,
     script_ast: Option<AST>,

@@ -4,13 +4,15 @@ use std::cell::RefCell;
 
 use run_script::ScriptOptions;
 
+use crate::engine::Node;
+
 #[derive(Debug, Clone)]
 pub struct CurrentRunContext {
-    pub node: Option<String>,
+    pub node: Option<Box<dyn Node>>,
 }
 
 impl CurrentRunContext {
-    pub fn get_node(&mut self) -> String {
+    pub fn get_node(&mut self) -> Box<dyn Node> {
         self.node.clone().unwrap_or("none".to_string())
     }
 }
