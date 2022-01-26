@@ -1,4 +1,4 @@
-node("test_node", || {
+node("docker", || {
     print("Hello world");
-    debug(current_context().node);
+    debug(get_node_type());
 });

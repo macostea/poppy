@@ -1,12 +1,9 @@
-use std::{path::PathBuf, fmt::Debug};
+use std::{path::PathBuf};
 use std::cell::RefCell;
 use rhai::{Engine, packages::{CorePackage, Package}, AST, NativeCallContext, FnPtr, EvalAltResult};
 
-use crate::command::{PoppyCommands, SharedPoppyCommands, CurrentRunContext};
+use crate::command::{PoppyCommands, SharedPoppyCommands};
 
-pub trait Node: Sized + Debug + Clone {
-    fn name(&self) -> String;
-}
 pub struct PoppyEngine {
     rhai_engine: Engine,
     script_ast: Option<AST>,
@@ -50,23 +47,19 @@ impl PoppyEngine {
             println!("Script: {}:{} {}", src, pos, x)
         });
 
-        engine
-            .register_type::<CurrentRunContext>()
-            .register_get("node", CurrentRunContext::get_node);
-
         let commands = SharedPoppyCommands::new(RefCell::new(PoppyCommands::new()));
 
         let c = commands.clone();
         engine.register_result_fn("node", move |context: NativeCallContext, node: &str, function: FnPtr| -> Result<(), Box<EvalAltResult>> {
-            c.borrow_mut().node(node);
+            c.borrow_mut().node(node)?;
 
             function.call_within_context(&context, ())?;
             Ok(())
         });
 
         let c = commands.clone();
-        engine.register_fn("current_context", move || {
-            c.borrow().current_run_context.clone()
+        engine.register_fn("get_node_type", move || {
+            c.borrow_mut().current_run_context.get_node_type()
         });
 
         let c = commands.clone();
