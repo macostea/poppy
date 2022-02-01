@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use run_script::ScriptOptions;
-use crate::node_provider::NodeProvider;
+use crate::node_provider::{NodeProvider, NodeType};
 
 pub trait Node {
     fn get_type(&self) -> String;
@@ -32,7 +32,7 @@ impl PoppyCommands {
         }
     }
 
-    pub fn node(&mut self, node: &str) -> Result<(), String> {
+    pub fn node(&mut self, node: NodeType) -> Result<(), String> {
         let node = self.node_provider.get_node(node)?;
         self.current_run_context.node = Some(node);
 

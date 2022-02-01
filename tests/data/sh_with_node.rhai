@@ -1,3 +1,3 @@
-node("docker", || {
+node(NodeType::Docker, || {
     print(sh("date"))
 })

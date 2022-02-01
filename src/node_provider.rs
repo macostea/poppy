@@ -11,6 +11,11 @@ impl Node for DockerNode {
     }
 }
 
+#[derive(Clone)]
+pub enum NodeType {
+    Docker,
+}
+
 pub struct NodeProvider {
 
 }
@@ -21,10 +26,9 @@ impl NodeProvider {
         }
     }
 
-    pub fn get_node(&self, node_type: &str) -> Result<Box<dyn Node>, String> {
+    pub fn get_node(&self, node_type: NodeType) -> Result<Box<dyn Node>, String> {
         match node_type {
-            "docker" => Ok(Box::new(DockerNode { })),
-            _ => Err("Unknown node type".to_string()),
+            NodeType::Docker => Ok(Box::new(DockerNode { })),
         }
     }
 }

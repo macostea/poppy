@@ -1,8 +1,10 @@
 use std::{path::PathBuf};
 use std::cell::RefCell;
 use rhai::{Engine, packages::{CorePackage, Package}, AST, NativeCallContext, FnPtr, EvalAltResult};
+use rhai::plugin::*;
 
 use crate::command::{PoppyCommands, SharedPoppyCommands};
+use crate::node_provider::NodeType;
 
 pub struct PoppyEngine {
     rhai_engine: Engine,
@@ -49,8 +51,11 @@ impl PoppyEngine {
 
         let commands = SharedPoppyCommands::new(RefCell::new(PoppyCommands::new()));
 
+        engine.register_type_with_name::<NodeType>("NodeType")
+            .register_static_module("NodeType", exported_module!(node_type_module).into());
+
         let c = commands.clone();
-        engine.register_result_fn("node", move |context: NativeCallContext, node: &str, function: FnPtr| -> Result<(), Box<EvalAltResult>> {
+        engine.register_result_fn("node", move |context: NativeCallContext, node: NodeType, function: FnPtr| -> Result<(), Box<EvalAltResult>> {
             c.borrow_mut().node(node)?;
 
             function.call_within_context(&context, ())?;
@@ -74,4 +79,10 @@ impl PoppyEngine {
 
         engine
     }
+}
+
+#[export_module]
+#[allow(non_upper_case_globals)]
+mod node_type_module {
+    pub const Docker: NodeType = NodeType::Docker;
 }
